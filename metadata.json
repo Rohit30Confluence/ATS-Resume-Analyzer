@@ -1,0 +1,5 @@
+{
+  "name": "ATS Resume Analyzer",
+  "description": "An AI-powered application that analyzes your resume against a job description, provides actionable feedback, and helps you create an ATS-friendly version to land your dream job.",
+  "requestFramePermissions": []
+}
