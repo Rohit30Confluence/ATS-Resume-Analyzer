@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ATSAnalysis } from '../types';
 
@@ -91,4 +90,29 @@ export const analyzeResume = async (resume: string, jobDescription: string): Pro
     console.error("Error analyzing resume with Gemini API:", error);
     throw new Error("Failed to get analysis from AI. Please check the console for details.");
   }
+};
+
+export const getRefinementTip = async (revisedResume: string): Promise<string> => {
+    const prompt = `
+    You are an elite career coach and senior hiring manager reviewing a resume that has already been optimized for ATS.
+    Your task is to provide one final, powerful suggestion to improve its impact on a human reader.
+    Do not comment on keywords or basic formatting. Focus on tone, impact, storytelling, or high-level strategy.
+    Your feedback should be a single, concise paragraph.
+
+    **Resume to review:**
+    ${revisedResume}
+
+    Provide your single, most impactful tip.
+    `;
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error getting refinement tip from Gemini API:", error);
+        // Return a graceful failure message instead of throwing an error
+        return "Could not retrieve the final refinement tip due to an issue with the AI service.";
+    }
 };

@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import type { ATSAnalysis } from '../types';
 import { ClipboardIcon } from './icons/ClipboardIcon';
 import { ClipboardCheckIcon } from './icons/ClipboardCheckIcon';
+import { SparkleIcon } from './icons/SparkleIcon';
 
 interface AnalysisResultProps {
   result: ATSAnalysis;
+  refinementTip: string | null;
 }
 
 const ScoreCircle: React.FC<{ score: number }> = ({ score }) => {
@@ -34,9 +35,12 @@ const ScoreCircle: React.FC<{ score: number }> = ({ score }) => {
   );
 };
 
-const FeedbackCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+const FeedbackCard: React.FC<{ title: string; children: React.ReactNode, icon?: React.ReactNode }> = ({ title, children, icon }) => (
     <div className="bg-white dark:bg-slate-800/50 rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">{title}</h3>
+        <div className="flex items-center mb-4">
+          {icon && <div className="mr-3">{icon}</div>}
+          <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{title}</h3>
+        </div>
         {children}
     </div>
 );
@@ -49,7 +53,17 @@ const KeywordPill: React.FC<{ keyword: string, type: 'match' | 'missing' }> = ({
     return <span className={`${baseClasses} ${typeClasses}`}>{keyword}</span>;
 }
 
-const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
+const InlineSpinner: React.FC = () => (
+    <div className="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+        <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
+        <span className="text-sm font-medium">Senior agent is reviewing...</span>
+    </div>
+);
+
+
+const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, refinementTip }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -113,6 +127,14 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result }) => {
              <ul className="list-decimal list-inside space-y-2 text-slate-600 dark:text-slate-300">
                 {result.suggestedImprovements.map((s,i) => <li key={i}>{s}</li>)}
              </ul>
+        </FeedbackCard>
+
+        <FeedbackCard title="Senior Agent's Final Polish" icon={<SparkleIcon className="w-6 h-6 text-amber-500" />}>
+            {refinementTip ? (
+                <p className="text-slate-600 dark:text-slate-300 italic">{refinementTip}</p>
+            ) : (
+                <InlineSpinner />
+            )}
         </FeedbackCard>
 
         <FeedbackCard title="Your New ATS-Friendly Resume">

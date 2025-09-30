@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
 import type { ATSAnalysis } from './types';
-import { analyzeResume } from './services/geminiService';
+import { analyzeResume, getRefinementTip } from './services/geminiService';
 import Header from './components/Header';
 import ResumeInput from './components/ResumeInput';
 import AnalysisResult from './components/AnalysisResult';
@@ -11,6 +10,7 @@ const App: React.FC = () => {
   const [resumeText, setResumeText] = useState<string>('');
   const [jobDescription, setJobDescription] = useState<string>('');
   const [analysis, setAnalysis] = useState<ATSAnalysis | null>(null);
+  const [refinementTip, setRefinementTip] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,13 +22,21 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setAnalysis(null);
+    setRefinementTip(null);
 
     try {
       const result = await analyzeResume(resumeText, jobDescription);
       setAnalysis(result);
+      // Main analysis is done, we can stop the main loader
+      setIsLoading(false);
+
+      // Now, asynchronously fetch the refinement tip from the second agent
+      const tip = await getRefinementTip(result.revisedResume);
+      setRefinementTip(tip);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-    } finally {
+      // Ensure loading is stopped on error
       setIsLoading(false);
     }
   }, [resumeText, jobDescription]);
@@ -62,7 +70,7 @@ const App: React.FC = () => {
           {analysis && !isLoading && (
             <div className="mt-8 animate-fade-in">
                <h2 className="text-3xl font-bold text-center text-slate-800 dark:text-slate-100 mb-6">Your Analysis Results</h2>
-              <AnalysisResult result={analysis} />
+              <AnalysisResult result={analysis} refinementTip={refinementTip} />
             </div>
           )}
         </div>
